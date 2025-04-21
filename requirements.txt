@@ -3,7 +3,4 @@ uuid
 pdfminer.six
 spacy
 opencv-python-headless
-tensorflow
-keras
-deepface
 requests
