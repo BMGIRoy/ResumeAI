@@ -1,9 +1,5 @@
 streamlit
 uuid
 pdfminer.six
-spacy==3.5.4
-opencv-python-headless
 requests
-
-# Download spaCy model for 3.5.4
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.5.0/en_core_web_sm-3.5.0.tar.gz
+opencv-python-headless
