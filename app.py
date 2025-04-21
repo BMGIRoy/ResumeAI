@@ -25,7 +25,7 @@ def recruiter_dashboard():
             job_id = str(uuid.uuid4())[:8]
             save_job(job_id, job_title, jd_file, interview_questions)
             st.success(f"Job Created! Share this link with candidates:")
-            st.code(f"?page=candidate&job_id={job_id}")
+            st.code(f"https://your-streamlit-app-url/?page=candidate&job_id={job_id}")
         else:
             st.error("Please provide all the information.")
 
@@ -114,14 +114,17 @@ def main():
 
     if page == "recruiter":
         recruiter_dashboard()
+
     elif page == "candidate":
-        job_id = query_params.get("job_id", None)
+        job_id = query_params.get("job_id")
         if job_id:
             candidate_interface(job_id)
         else:
-            st.error("Job ID missing.")
+            st.error("Invalid Candidate Link: Missing Job ID.")
+
     elif page == "dashboard":
         recruiter_dashboard_status()
+
     else:
         st.title("Welcome to Recruiter AI Platform")
         st.write("Please choose a role from the sidebar.")
