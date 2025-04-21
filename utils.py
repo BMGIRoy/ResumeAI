@@ -2,6 +2,16 @@ import json
 import os
 import uuid
 from datetime import datetime
+import spacy
+import pdfminer
+from pdfminer.high_level import extract_text
+from deepface import DeepFace
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Load Spacy model
+nlp = spacy.load("en_core_web_sm")
 
 def save_job(job_id, job_title, jd_file, questions):
     jd_path = f"database/{job_id}_jd.pdf"
@@ -52,12 +62,44 @@ def save_candidate(job_id, name, email, phone, resume_file, answers, video_file)
         json.dump(candidates, f)
 
 def analyze_resume(resume_path):
-    # Placeholder: simple scoring logic
-    return 80
+    try:
+        text = extract_text(resume_path)
+        doc = nlp(text)
+        skills = [ent.text for ent in doc.ents if ent.label_ == "SKILL"]
+        education = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
+        experience = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
+        score = min(len(skills) * 10 + len(education) * 5, 100)  # simple scoring logic
+        return score
+    except:
+        return 50  # fallback
 
 def analyze_video(video_path):
-    # Placeholder: simulate emotional analysis
-    return 75
+    try:
+        result = DeepFace.analyze(img_path=video_path, actions=['emotion'], enforce_detection=False)
+        emotions = result[0]['emotion']
+        confidence = emotions.get('happy', 0) + emotions.get('neutral', 0)
+        return min(int(confidence), 100)
+    except:
+        return 50  # fallback
+
+def send_email(recipient_email, subject, body):
+    sender_email = "your_email@example.com"  # use your SMTP or SendGrid email
+    sender_password = "your_password"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+    except Exception as e:
+        print("Email sending failed:", e)
 
 def load_jobs():
     try:
