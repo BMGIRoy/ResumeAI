@@ -3,9 +3,8 @@ import os
 import uuid
 from datetime import datetime
 import spacy
-import pdfminer
 from pdfminer.high_level import extract_text
-from deepface import DeepFace
+import random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -68,23 +67,19 @@ def analyze_resume(resume_path):
         skills = [ent.text for ent in doc.ents if ent.label_ == "SKILL"]
         education = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
         experience = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
-        score = min(len(skills) * 10 + len(education) * 5, 100)  # simple scoring logic
+        score = min(len(skills) * 10 + len(education) * 5, 100)  # simple scoring
         return score
     except:
         return 50  # fallback
 
 def analyze_video(video_path):
-    try:
-        result = DeepFace.analyze(img_path=video_path, actions=['emotion'], enforce_detection=False)
-        emotions = result[0]['emotion']
-        confidence = emotions.get('happy', 0) + emotions.get('neutral', 0)
-        return min(int(confidence), 100)
-    except:
-        return 50  # fallback
+    # Simulate confidence score (no heavy models)
+    confidence_score = random.randint(70, 95)
+    return confidence_score
 
 def send_email(recipient_email, subject, body):
-    sender_email = "your_email@example.com"  # use your SMTP or SendGrid email
-    sender_password = "your_password"
+    sender_email = "your_email@example.com"  # replace
+    sender_password = "your_password"         # replace
 
     msg = MIMEMultipart()
     msg['From'] = sender_email
