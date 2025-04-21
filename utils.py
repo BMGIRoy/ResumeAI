@@ -2,15 +2,11 @@ import json
 import os
 import uuid
 from datetime import datetime
-import spacy
 from pdfminer.high_level import extract_text
 import random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-# Load Spacy model
-nlp = spacy.load("en_core_web_sm")
 
 def save_job(job_id, job_title, jd_file, questions):
     jd_path = f"database/{job_id}_jd.pdf"
@@ -63,23 +59,20 @@ def save_candidate(job_id, name, email, phone, resume_file, answers, video_file)
 def analyze_resume(resume_path):
     try:
         text = extract_text(resume_path)
-        doc = nlp(text)
-        skills = [ent.text for ent in doc.ents if ent.label_ == "SKILL"]
-        education = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
-        experience = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
-        score = min(len(skills) * 10 + len(education) * 5, 100)  # simple scoring
+        keywords = ["python", "data", "machine learning", "ai", "project management", "communication", "leadership"]
+        match_count = sum(1 for word in keywords if word.lower() in text.lower())
+        score = min(match_count * 15, 100)  # 7 keywords x 15 = max 100
         return score
     except:
-        return 50  # fallback
+        return 50  # fallback in case of error
 
 def analyze_video(video_path):
-    # Simulate confidence score (no heavy models)
-    confidence_score = random.randint(70, 95)
+    confidence_score = random.randint(70, 95)  # Simulate emotion analysis
     return confidence_score
 
 def send_email(recipient_email, subject, body):
-    sender_email = "your_email@example.com"  # replace
-    sender_password = "your_password"         # replace
+    sender_email = "your_email@example.com"  # replace with your email
+    sender_password = "your_password"         # replace with your password
 
     msg = MIMEMultipart()
     msg['From'] = sender_email
