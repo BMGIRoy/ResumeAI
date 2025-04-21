@@ -107,13 +107,17 @@ def main():
         st.title("Navigation")
         selected_page = st.selectbox("Go to:", ["Home", "Post Jobs (Recruiter)", "Dashboard"])
 
-        if selected_page == "Post Jobs (Recruiter)":
+        current_page = st.query_params.get("page", "home")
+        if isinstance(current_page, list):
+            current_page = current_page[0]
+
+        if selected_page == "Post Jobs (Recruiter)" and current_page != "recruiter":
             st.query_params.update({"page": "recruiter"})
             st.rerun()
-        elif selected_page == "Dashboard":
+        elif selected_page == "Dashboard" and current_page != "dashboard":
             st.query_params.update({"page": "dashboard"})
             st.rerun()
-        else:
+        elif selected_page == "Home" and current_page != "home":
             st.query_params.update({"page": "home"})
             st.rerun()
 
