@@ -2,11 +2,8 @@ streamlit
 uuid
 pdfminer.six
 spacy
-deepface
-fer
-smtplib
-email-validator
 opencv-python-headless
 tensorflow
 keras
-numpy
+deepface
+requests
