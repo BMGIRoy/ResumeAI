@@ -3,7 +3,7 @@ import json
 import uuid
 import os
 from datetime import datetime
-from utils import save_job, save_candidate, analyze_resume, analyze_video, load_jobs, load_candidates
+from utils import save_job, save_candidate, analyze_resume, analyze_video, load_jobs, load_candidates, send_email
 
 # Ensure database folders exist
 if not os.path.exists('database'):
@@ -12,6 +12,7 @@ if not os.path.exists('database'):
 st.set_page_config(page_title="Recruiter AI App", layout="wide")
 
 # Recruiter Dashboard
+
 def recruiter_dashboard():
     st.header("Recruiter Dashboard")
 
@@ -31,11 +32,35 @@ def recruiter_dashboard():
 
     st.subheader("Manage Jobs")
     jobs = load_jobs()
+    candidates = load_candidates()
     if jobs:
         for job in jobs:
             st.write(f"**{job['job_title']}** - ID: {job['job_id']}")
+            st.code(f"https://your-streamlit-app-url/?page=candidate&job_id={job['job_id']}")
+
+            st.subheader("Manual Resume Upload for this Job")
+            name = st.text_input(f"Candidate Name ({job['job_id']})")
+            email = st.text_input(f"Candidate Email ({job['job_id']})")
+            phone = st.text_input(f"Candidate Phone ({job['job_id']})")
+            resume_file = st.file_uploader(f"Upload Resume for {job['job_title']}", type=["pdf", "docx"], key=job['job_id'])
+
+            if st.button(f"Upload Candidate for {job['job_id']}"):
+                if name and email and resume_file:
+                    save_candidate(job['job_id'], name, email, phone, resume_file, [], None)
+                    st.success("Candidate Uploaded Successfully! You can now invite them for video interview.")
+
+                    # Send Email to Candidate
+                    video_link = f"https://your-streamlit-app-url/?page=candidate&job_id={job['job_id']}"
+                    email_subject = f"Video Interview Invitation for {job['job_title']}"
+                    email_body = f"Hi {name},\n\nThank you for applying. Please complete your Video Interview using the following link:\n{video_link}\n\nRegards,\nRecruitment Team"
+
+                    send_email(email, email_subject, email_body)
+                    st.success("Invitation Email Sent Successfully!")
+                else:
+                    st.error("Please fill all candidate details and upload resume.")
 
 # Candidate Interface
+
 def candidate_interface(job_id):
     st.header("Candidate Application")
 
@@ -58,19 +83,20 @@ def candidate_interface(job_id):
             answer = st.text_area(q)
             answers.append((q, answer))
 
-        st.subheader("Record your Interview Video")
+        st.subheader("Record your Interview Video (Mandatory)")
         video_file = st.camera_input("Record Video")
 
         if st.button("Submit Application"):
-            if name and email and resume_file:
+            if name and email and resume_file and video_file:
                 save_candidate(job_id, name, email, phone, resume_file, answers, video_file)
                 st.success("Application Submitted Successfully!")
             else:
-                st.error("Please fill in all required fields.")
+                st.error("All fields including video recording are mandatory.")
     else:
         st.error("Invalid Job Link")
 
 # Recruiter Dashboard Status
+
 def recruiter_dashboard_status():
     st.header("Recruiter Status Dashboard")
 
@@ -87,16 +113,8 @@ def recruiter_dashboard_status():
             st.write(f"  Resume Score: {candidate.get('resume_score', 'N/A')}")
             st.write(f"  Video Score: {candidate.get('video_score', 'N/A')}")
 
-        if st.button(f"Download Candidates for {job['job_title']}"):
-            job_data = [c for c in candidates if c['job_id'] == job['job_id']]
-            st.download_button(
-                label="Download JSON",
-                data=json.dumps(job_data),
-                file_name=f"{job['job_title']}_candidates.json",
-                mime="application/json"
-            )
-
 # Main Router
+
 def main():
     query_params = st.query_params
     page = query_params.get("page", "home")
@@ -121,13 +139,10 @@ def main():
             st.query_params.update({"page": "home"})
             st.rerun()
 
-    # Now correct routing based on normalized page
     if page == "recruiter":
         recruiter_dashboard()
-
     elif page == "dashboard":
         recruiter_dashboard_status()
-
     elif page == "candidate":
         job_id = query_params.get("job_id")
         if isinstance(job_id, list):
@@ -136,11 +151,9 @@ def main():
             candidate_interface(job_id)
         else:
             st.error("Invalid Candidate Link: Missing Job ID.")
-
     elif page == "home":
         st.title("Welcome to Recruiter AI Platform")
         st.write("Please choose a role from the sidebar.")
-
     else:
         st.title("Welcome to Recruiter AI Platform")
         st.write("Please choose a role from the sidebar.")
