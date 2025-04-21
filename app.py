@@ -107,10 +107,13 @@ def main():
 
         if selected_page == "Post Jobs (Recruiter)":
             st.query_params.update({"page": "recruiter"})
+            st.rerun()
         elif selected_page == "Dashboard":
             st.query_params.update({"page": "dashboard"})
+            st.rerun()
         else:
             st.query_params.update({"page": "home"})
+            st.rerun()
 
     if page == "recruiter":
         recruiter_dashboard()
