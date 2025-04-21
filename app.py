@@ -90,7 +90,7 @@ def recruiter_dashboard_status():
         if st.button(f"Download Candidates for {job['job_title']}"):
             job_data = [c for c in candidates if c['job_id'] == job['job_id']]
             st.download_button(
-                label="Download CSV",
+                label="Download JSON",
                 data=json.dumps(job_data),
                 file_name=f"{job['job_title']}_candidates.json",
                 mime="application/json"
@@ -98,13 +98,24 @@ def recruiter_dashboard_status():
 
 # Router
 def main():
-    query_params = st.experimental_get_query_params()
-    page = query_params.get("page", ["home"])[0]
+    query_params = st.query_params
+    page = query_params.get("page", "home")
+
+    with st.sidebar:
+        st.title("Navigation")
+        selected_page = st.selectbox("Go to:", ["Home", "Post Jobs (Recruiter)", "Dashboard"])
+
+        if selected_page == "Post Jobs (Recruiter)":
+            st.query_params.update({"page": "recruiter"})
+        elif selected_page == "Dashboard":
+            st.query_params.update({"page": "dashboard"})
+        else:
+            st.query_params.update({"page": "home"})
 
     if page == "recruiter":
         recruiter_dashboard()
     elif page == "candidate":
-        job_id = query_params.get("job_id", [None])[0]
+        job_id = query_params.get("job_id", None)
         if job_id:
             candidate_interface(job_id)
         else:
@@ -114,11 +125,6 @@ def main():
     else:
         st.title("Welcome to Recruiter AI Platform")
         st.write("Please choose a role from the sidebar.")
-
-    with st.sidebar:
-        st.title("Navigation")
-        st.page_link("?page=recruiter", label="Recruiter: Post Jobs")
-        st.page_link("?page=dashboard", label="Recruiter: Dashboard")
 
 if __name__ == "__main__":
     main()
