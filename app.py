@@ -70,7 +70,7 @@ def candidate_interface(job_id):
     else:
         st.error("Invalid Job Link")
 
-# Dashboard
+# Recruiter Dashboard Status
 def recruiter_dashboard_status():
     st.header("Recruiter Status Dashboard")
 
@@ -96,10 +96,12 @@ def recruiter_dashboard_status():
                 mime="application/json"
             )
 
-# Router
+# Main Router
 def main():
     query_params = st.query_params
     page = query_params.get("page", "home")
+    if isinstance(page, list):
+        page = page[0]
 
     with st.sidebar:
         st.title("Navigation")
@@ -115,18 +117,25 @@ def main():
             st.query_params.update({"page": "home"})
             st.rerun()
 
+    # Now correct routing based on normalized page
     if page == "recruiter":
         recruiter_dashboard()
 
+    elif page == "dashboard":
+        recruiter_dashboard_status()
+
     elif page == "candidate":
         job_id = query_params.get("job_id")
+        if isinstance(job_id, list):
+            job_id = job_id[0]
         if job_id:
             candidate_interface(job_id)
         else:
             st.error("Invalid Candidate Link: Missing Job ID.")
 
-    elif page == "dashboard":
-        recruiter_dashboard_status()
+    elif page == "home":
+        st.title("Welcome to Recruiter AI Platform")
+        st.write("Please choose a role from the sidebar.")
 
     else:
         st.title("Welcome to Recruiter AI Platform")
